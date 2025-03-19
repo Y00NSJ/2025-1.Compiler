@@ -22,8 +22,11 @@ REAL	([0-9]+\.[0-9]*|\[0-9]+)([Ee][\+\-]?[0-9]+)?
 
 %%
 
-int main(void){
+int main(int argc, char *argv[]){
 	enum tnumber tn;
+
+	if (argc == 1)	exit(0);
+	yyin = fopen(argv[1], "r");	
 
 	while ((tn = yylex()) != TEOF) {
 		switch(tn) {
@@ -41,5 +44,6 @@ int main(void){
 			break;
 		}
 	}
+	fclose(yyin);
 	return 0;
 }
