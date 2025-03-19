@@ -16,3 +16,7 @@ char|int|void|float              {printf("TYPE ");}
 
 %%
 
+int main(void){
+  yylex();
+  return 0;
+}
