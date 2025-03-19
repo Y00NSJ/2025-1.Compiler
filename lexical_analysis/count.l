@@ -17,5 +17,6 @@ OTHER	        .
 
 int main(void){
 	yylex();
+    yylex();
 	printf("%d words, %d lines\n", ww, ll);
 }
