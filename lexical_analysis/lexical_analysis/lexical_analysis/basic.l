@@ -7,8 +7,8 @@
 
 [ \t\n]+                         {}
 char|int|void|float              {printf("TYPE ");}
-{LETTER}({LETTER}|{DIGIT})*      {printf("ID ");}
-0|[1-9]{DIGIT}*                  {printf("INTEGER ");}
+[A-Za-z_][A-Za-z0-9_]*           {printf("ID ");}
+0|[1-9][0-9]*                    {printf("INTEGER ");}
 [\+\-\*\/\=]                     {printf("OPERATOR ");}
 .                                {printf("OTHER ");}
 
