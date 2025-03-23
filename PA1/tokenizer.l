@@ -24,7 +24,7 @@ REAL	    ([0-9]+\.[0-9]*|\[0-9]+)([Ee][\+\-]?[0-9]+)?
 %%
 
 {WS}	{}
-{TYPE}	{return TTYPE;}
+// todo keyword를 id보다 먼저 분기
 {ID}	{return TIDENTIFIER;}
 ","	{return TCOMMA;}
 ;	{return TSEMI;}
