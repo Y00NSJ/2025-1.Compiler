@@ -15,21 +15,43 @@ union{
 
 %}
 
-WS	    [\t\n]+
-DIGIT	    [0-9]
-LETTER_     [A-Za-z_]
-ID	    {LETTER_}({LETTER_}|{DIGIT})*
-REAL	    ([0-9]+\.[0-9]*|\[0-9]+)([Ee][\+\-]?[0-9]+)?
+WS		[\t\n]+
+DIGIT		[0-9]
+LETTER_		[A-Za-z_]
+ID		{LETTER_}({LETTER_}|{DIGIT})*
+REAL		([0-9]+\.[0-9]*|\[0-9]+)([Ee][\+\-]?[0-9]+)?
+PUNC		"("|")"|"{"|"}"|"["|"]"|;|:
+OPER		["+""-""*""/""%""=""<"">"]=?|!=|["+""-"]{2}|,
+CHAR		'[^"\"'"\n]'|'"\"['"?"\"abfnrtv0]'
+INT		[1-9]{DIGIT}*|0[0-7]*|0[Xx]({DIGIT}|[A-Fa-f])+
+STR		"([^"\"'"\n]|"\"['"?"\"abfnrtv0])*"
+CMT		"/""/"[^\n]*\n|"/""*"([^"*"]|"*"+[^"*""/"])*"*"+"/"
 
 %%
 
-{WS}	{}
-// todo keyword를 id보다 먼저 분기
-{ID}	{return TIDENTIFIER;}
-","	{return TCOMMA;}
-;	{return TSEMI;}
-=	{return TOPER;}
-{REAL}	{return TREAL;}
+{WS}		{}
+break		{return TBREAK;}
+case		{return TCASE;}
+char		{return TCHAR;}
+default		{return TDEFAULT;}
+do		{return TDO;}
+else		{return	TELSE;}
+float		{return TFLOAT;}
+for		{return TFOR;}
+if		{return TIF;}
+int		{return TINT;}
+return		{return TRETURN;}
+switch		{return TSWITCH;}
+void		{return TVOID;}
+while		{return TWHILE;}
+{ID}		{return TIDENTIFIER;}
+{CHAR}|{INT}	{return TINTEGER;}
+{REAL}		{return TREAL;}
+{STR}		{return TSTRING;}
+{CMT}		{return TCOMMENT;}
+{OPER}		{return TOPERATOR;}
+{PUNC}		{return TPUNCTUATION;}
+.		{return TERROR;}
 
 %%
 
