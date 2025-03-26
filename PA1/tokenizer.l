@@ -90,7 +90,7 @@ if (yytext[0] == '0') {
 } else { yylval.iVal = atoi(yytext); } 
 return TINTEGER; 
 }
-{REAL}		{return TREAL;}
+{REAL}		{ yylval.rVal = atof(yytext); return TREAL; }
 {STR}		{return TSTRING;}
 {CMT}		{return TCOMMENT;}
 {OPER}		{return TOPERATOR;}
