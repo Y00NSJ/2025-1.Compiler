@@ -45,7 +45,29 @@ switch		{return TSWITCH;}
 void		{return TVOID;}
 while		{return TWHILE;}
 {ID}		{return TIDENTIFIER;}
-{CHAR}|{INT}	{return TINTEGER;}
+{CHAR}		{
+    if (yytext[1] != '\\') {
+        yylval.iVal = yytext[1];
+    } else {
+        switch (yytext[2]) {
+            case '\'': yylval.iVal = '\''; break;
+	    case '\"': yylval.iVal = '\"'; break;
+            case '\\': yylval.iVal = '\\'; break;
+	    case '?': yylval.iVal = '\?'; break;
+	    case 'a': yylval.iVal = '\a'; break;
+	    case 'b': yylval.iVal = '\b'; break;
+	    case 'f': yylval.iVal = '\f'; break;
+	    case 'n': yylval.iVal = '\n'; break;
+            case 'r': yylval.iVal = '\r'; break;
+	    case 't': yylval.iVal = '\t'; break;
+            case 'v': yylval.iVal = '\v'; break;
+            case '0': yylval.iVal = '\0'; break;
+            default: yylval.iVal = yytext[1]; break;
+        }
+    }
+    return TINTEGER;
+}
+{INT}		{return TINTEGER;}
 {REAL}		{return TREAL;}
 {STR}		{return TSTRING;}
 {CMT}		{return TCOMMENT;}
