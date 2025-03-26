@@ -91,7 +91,38 @@ if (yytext[0] == '0') {
 return TINTEGER; 
 }
 {REAL}		{ yylval.rVal = atof(yytext); return TREAL; }
-{STR}		{return TSTRING;}
+{STR}		{     char* result = (char*)malloc(yyleng);  
+    int ri = 0;
+
+    for (int i = 1; i < yyleng - 1; ++i) { 
+        if (yytext[i] == '\\') {
+            i++; 
+            switch (yytext[i]) {
+                case 'n': result[ri++] = '\n'; break;
+                case 't': result[ri++] = '\t'; break;
+                case 'r': result[ri++] = '\r'; break;
+                case 'b': result[ri++] = '\b'; break;
+                case 'f': result[ri++] = '\f'; break;
+                case 'a': result[ri++] = '\a'; break;
+                case 'v': result[ri++] = '\v'; break;
+                case '0': result[ri++] = '\0'; break;
+                case '\\': result[ri++] = '\\'; break;
+                case '\"': result[ri++] = '\"'; break;
+                case '\'': result[ri++] = '\''; break;
+                case '?': result[ri++] = '\?'; break;
+                default:
+                    result[ri++] = '\\';
+                    result[ri++] = yytext[i];
+                    break;
+            }
+        } else {
+            result[ri++] = yytext[i];
+        }
+    }
+
+    result[ri] = '\0'; 
+    yylval.sVal = result;
+return TSTRING; }
 {CMT}		{return TCOMMENT;}
 {OPER}		{return TOPERATOR;}
 {PUNC}		{return TPUNCTUATION;}
