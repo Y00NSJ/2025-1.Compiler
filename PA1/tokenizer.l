@@ -67,7 +67,29 @@ while		{return TWHILE;}
     }
     return TINTEGER;
 }
-{INT}		{return TINTEGER;}
+{INT}		{ 
+if (yytext[0] == '0') {
+	int result = 0;
+	if (yytext[1] == 'x' || yytext[1] == 'X') {
+		for (int i = 2; i < yyleng; i++) {
+			int value;
+			char c = yytext[i];
+			if (c >= '0' && c <= '9') value = c - '0';
+			else if (c >= 'a' && c <= 'f') value = c - 'a' + 10;
+			else if (c >= 'A' && c <= 'F') value = c - 'A' + 10;
+
+			result = result * 16 + value;
+		}
+	}
+	else {
+		for (int i = 1; i <  yyleng; i++) {
+			result = result * 8 + (yytext[i] - '0');
+		}
+	}
+	yylval.iVal = result;
+} else { yylval.iVal = atoi(yytext); } 
+return TINTEGER; 
+}
 {REAL}		{return TREAL;}
 {STR}		{return TSTRING;}
 {CMT}		{return TCOMMENT;}
