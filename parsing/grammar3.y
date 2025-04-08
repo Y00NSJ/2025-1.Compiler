@@ -28,5 +28,6 @@ int main(void) {
     return 0;
 }
 int yyerror(char* s) {
+    printf("%s\n", s);
     return 0;
 }
