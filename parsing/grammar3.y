@@ -3,8 +3,12 @@
     int yylex(void);
     int yyerror(char*);
 %}
-
-%token TINTEGER
+%union{
+	int iVal;
+	float rVal;
+}
+%token <iVal> TINTEGER
+%type <iVal> Expr Term Factor
 
 %%
 
@@ -47,9 +51,11 @@ Factor : '(' Expr ')'   {
        ;
 
 %%
-int main(void) {
+int main(int argc, char* argv[]) {
+    extern FILE* yyin;
+    yyin = fopen(argv[1], "r");
     yyparse();
-    return 0;
+    fclose(yyin);
 }
 int yyerror(char* s) {
     printf("%s\n", s);
