@@ -8,18 +8,18 @@
 
 %%
 
-Expr : Expr '+' Term
-     | Expr '-' Term
-     | Term
+Expr : Expr '+' Term    {printf("E -> E + T\n");}
+     | Expr '-' Term    {printf("E -> E - T\n");}
+     | Term             {printf("E -> T\n");}
      ;
 
-Term : Term '*' Factor
-      | Term '/' Factor
-      | Factor
+Term : Term '*' Factor  {printf("T -> T * F\n");}
+      | Term '/' Factor {printf("T -> T / F\n");}
+      | Factor          {printf("T -> F\n");}
       ;
 
-Factor : '(' Expr ')'
-       | TINTEGER
+Factor : '(' Expr ')'   {printf("F -> ( E )\n");}
+       | TINTEGER       {printf("F -> num\n");}
        ;
 
 %%
