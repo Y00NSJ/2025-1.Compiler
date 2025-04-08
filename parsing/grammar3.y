@@ -8,17 +8,17 @@
 
 %%
 
-Expr -> Expr '+' Term
-      | Expr '-' Term
-      | Term
-      ;
+Expr : Expr '+' Term
+     | Expr '-' Term
+     | Term
+     ;
 
-Term -> Term '*' Factor
+Term : Term '*' Factor
       | Term '/' Factor
       | Factor
       ;
 
-Factor -> '(' Expr ')'
+Factor : '(' Expr ')'
        | TINTEGER
        ;
 
