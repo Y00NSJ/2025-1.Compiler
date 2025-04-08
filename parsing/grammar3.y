@@ -19,7 +19,7 @@ Term : Term '*' Factor  {printf("T -> T * F\n");}
       ;
 
 Factor : '(' Expr ')'   {printf("F -> ( E )\n");}
-       | TINTEGER       {printf("F -> num\n");}
+       | TINTEGER       {printf("F -> %d\n", $1);} // 생성규칙 우측에 있는 1번째 요소
        ;
 
 %%
