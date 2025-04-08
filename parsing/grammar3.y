@@ -8,18 +8,42 @@
 
 %%
 
-Expr : Expr '+' Term    {printf("E -> E + T\n");}
-     | Expr '-' Term    {printf("E -> E - T\n");}
-     | Term             {printf("E -> T\n");}
+Expr : Expr '+' Term    {
+    $$ = $1 + $3;
+    printf("%d -> %d + %d\n", $$, $1, $3);
+    }
+     | Expr '-' Term    {
+        $$ = $1 - $3;
+        printf("%d -> %d - %d\n", $$, $1, $3);
+        }
+     | Term             {
+        $$ = $1;
+        printf("%d -> %d\n", $$, $1);
+        }
      ;
 
-Term : Term '*' Factor  {printf("T -> T * F\n");}
-      | Term '/' Factor {printf("T -> T / F\n");}
-      | Factor          {printf("T -> F\n");}
+Term : Term '*' Factor  {
+        $$ = $1 * $3;
+        printf("%d -> %d * %d\n", $$, $1, $3);
+        }
+      | Term '/' Factor {
+        $$ = $1 / $3;
+        printf("%d -> %d / %d\n", $$, $1, $3);
+        }
+      | Factor          {
+        $$ = $1;
+        printf("%d -> %d\n", $$, $1);
+        }
       ;
 
-Factor : '(' Expr ')'   {printf("F -> ( E )\n");}
-       | TINTEGER       {printf("F -> %d\n", $1);} // 생성규칙 우측에 있는 1번째 요소
+Factor : '(' Expr ')'   {
+            $$ = $2;
+            printf("%d -> ( %d )\n", $$, $2);
+        }
+       | TINTEGER       {
+        $$ = $1;
+        printf("%d -> %d\n", $$, $1);        
+        } // 생성규칙 우측에 있는 1번째 요소
        ;
 
 %%
