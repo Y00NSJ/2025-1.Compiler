@@ -69,7 +69,7 @@ IDDec: Declarator TOPERATOR Initializer { printf("IDDec -> Declarator = Initiali
 	;
 
 Declarator : TIDENTIFIER TPUNCTUATION TINTEGER TPUNCTUATION { printf("Declarator -> %s [ %d ]\n", $1, $3); }
-	   | TINTEGER { printf("Declarator -> %d\n", $1); }
+	   | TIDENTIFIER { printf("Declarator -> %s\n", $1); }
 	   ;
 
 Initializer : AssignExpr { printf("Initializer -> AssignExpr\n"); }
