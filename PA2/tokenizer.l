@@ -40,6 +40,7 @@ switch		{return TSWITCH;}
 void		{return TVOID;}
 while		{return TWHILE;}
 {ID}            {return TIDENTIFIER;}
+{OPER}          {return TOPERATOR;}
 {CHAR}		{
     if (yytext[1] != '\\') {
         yylval.iVal = yytext[1];
@@ -131,7 +132,6 @@ return TSTRING; }
 <=		{return TLE;}
 ++		{return TINC;}
 --		{return TDEC;}
-{OPER}		{return TOPERATOR;}
 {PUNC}		{return TPUNCTUATION;}
 .		{return TERROR;}
 
