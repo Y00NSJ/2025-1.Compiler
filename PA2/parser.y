@@ -64,7 +64,7 @@ IDDecList : IDDecList TOPERATOR IDDec { printf("IDDecList -> IDDecList , IDDec\n
 	  | IDDec { printf("IDDecList -> IDDec\n"); }
 	  ;
 
-IDDec: Declarator '=' Initializer { printf("IDDec -> Declarator = Initializer\n"); }
+IDDec: Declarator TOPERATOR Initializer { printf("IDDec -> Declarator = Initializer\n"); }
 	| Declarator { printf("IDDec -> Declarator\n"); }
 	;
 
@@ -131,12 +131,12 @@ Expr : Expr TOPERATOR AssignExpr { printf("Expr -> Expr , AssignExpr\n"); }
      | AssignExpr { printf("Expr -> AssignExpr\n"); }
      ;
 
-AssignExpr : Variable '=' AssignExpr { printf("AssignExpr -> Variable = AssignExpr\n"); }
-	   | Variable '+''=' AssignExpr { printf("AssignExpr -> Variable += AssignExpr\n"); }
-	   | Variable '-''=' AssignExpr { printf("AssignExpr -> Variable -= AssignExpr\n"); }
-	   | Variable '*''=' AssignExpr { printf("AssignExpr -> Variable *= AssignExpr\n"); }
-	   | Variable '/''=' AssignExpr { printf("AssignExpr -> Variable /= AssignExpr\n"); }
-	   | Variable '%''=' AssignExpr { printf("AssignExpr -> Variable %= AssignExpr\n"); }
+AssignExpr : Variable TOPERATOR AssignExpr { printf("AssignExpr -> Variable = AssignExpr\n"); }
+	   | Variable TPLUSASSIGN AssignExpr { printf("AssignExpr -> Variable += AssignExpr\n"); }
+	   | Variable TMINUSASSIGN AssignExpr { printf("AssignExpr -> Variable -= AssignExpr\n"); }
+	   | Variable TMULASSIGN AssignExpr { printf("AssignExpr -> Variable *= AssignExpr\n"); }
+	   | Variable TDIVASSIGN AssignExpr { printf("AssignExpr -> Variable /= AssignExpr\n"); }
+	   | Variable TMODASSIGN AssignExpr { printf("AssignExpr -> Variable %= AssignExpr\n"); }
 	   | SimpleExpr { printf("AssignExpr -> SimpleExpr\n"); }
 	   ;
 
@@ -144,40 +144,40 @@ Variable : TIDENTIFIER TPUNCTUATION Expr TPUNCTUATION { printf("Variable -> %s [
 	 | TIDENTIFIER { printf("Variable -> %s\n", $1); }
 	 ;
 
-SimpleExpr : SimpleExpr '|''|' AndExpr { printf("SimpleExpr -> SimpleExpr || AndExpr\n"); }
+SimpleExpr : SimpleExpr TOR AndExpr { printf("SimpleExpr -> SimpleExpr || AndExpr\n"); }
 	   | AndExpr { printf("SimpleExpr -> AndExpr\n"); }
 	   ;
 
-AndExpr : AndExpr '&''&' EqualityExpr { printf("AndExpr -> AndExpr && EqualityExpr\n"); }
+AndExpr : AndExpr TAND EqualityExpr { printf("AndExpr -> AndExpr && EqualityExpr\n"); }
 	| EqualityExpr { printf("AndExpr -> EqualityExpr\n"); }
 	;
 
-EqualityExpr : EqualityExpr '=''=' RelExpr { printf("EqualityExpr -> EqualityExpr == RelExpr\n"); }
-	     | EqualityExpr '!''=' RelExpr { printf("EqualityExpr -> EqualityExpr != RelExpr\n"); }
+EqualityExpr : EqualityExpr TEQ RelExpr { printf("EqualityExpr -> EqualityExpr == RelExpr\n"); }
+	     | EqualityExpr TNE RelExpr { printf("EqualityExpr -> EqualityExpr != RelExpr\n"); }
 	     | RelExpr { printf("EqualityExpr -> RelExpr\n"); }
 	     ;
 
-RelExpr : RelExpr '<' AddExpr { printf("RelExpr -> RelExpr < AddExpr\n"); }
-	| RelExpr '<''=' AddExpr { printf("RelExpr -> RelExpr <= AddExpr\n"); }
-	| RelExpr > AddExpr { printf("RelExpr -> RelExpr > AddExpr\n"); }
-	| RelExpr >''= AddExpr { printf("RelExpr -> RelExpr >= AddExpr\n"); }
+RelExpr : RelExpr TOPERATOR AddExpr { printf("RelExpr -> RelExpr < AddExpr\n"); }
+	| RelExpr TLE AddExpr { printf("RelExpr -> RelExpr <= AddExpr\n"); }
+	| RelExpr TOPERATOR AddExpr { printf("RelExpr -> RelExpr > AddExpr\n"); }
+	| RelExpr TGE AddExpr { printf("RelExpr -> RelExpr >= AddExpr\n"); }
 	| AddExpr { printf("RelExpr -> AddExpr\n"); }
 	;
 
-AddExpr : AddExpr '+' Term { printf("AddExpr -> AddExpr + Term\n"); }
-	| AddExpr '-' Term { printf("AddExpr -> AddExpr - Term\n"); }
+AddExpr : AddExpr TOPERATOR Term { printf("AddExpr -> AddExpr + Term\n"); }
+	| AddExpr TOPERATOR Term { printf("AddExpr -> AddExpr - Term\n"); }
 	| Term		   { printf("AddExpr -> Term\n"); }
 	;
 
-Term : Term '*' Factor { printf("Term -> Term * Factor\n"); }
-	| Term '/' Factor { printf("Term -> Term / Factor\n"); }
-	| Term '%' Factor { printf("Term -> Term % Factor\n"); }
+Term : Term TOPERATOR Factor { printf("Term -> Term * Factor\n"); }
+	| Term TOPERATOR Factor { printf("Term -> Term / Factor\n"); }
+	| Term TOPERATOR Factor { printf("Term -> Term % Factor\n"); }
 	| Factor { printf("Term -> Factor\n"); }
 	;
 
 Factor : TPUNCTUATION Expr TPUNCTUATION { printf("Factor -> ( Expr )\n"); }
 	| FuncCall { printf("Factor -> FuncCall\n"); }
-	| '-' Factor { printf("Factor -> - Factor\n"); }
+	| TOPERATOR Factor { printf("Factor -> - Factor\n"); }
 	| Variable { printf("Factor -> Variable\n"); }
 	| Variable IncDec { printf("Factor -> Variable IncDec\n"); }
 	| IncDec Variable { printf("Factor -> IncDec Variable\n"); }
@@ -188,8 +188,8 @@ NumberLiteral : TINTEGER { printf("NumberLiteral -> %d\n", $1); }
 		| TREAL { printf("NumberLiteral -> %.2f\n", $1); }
 		;
 
-IncDec : '+''+' { printf("IncDec -> ++\n"); }
-	| '-''-' { printf("IncDec -> --\n"); }
+IncDec : TINC { printf("IncDec -> ++\n"); }
+	| TDEC { printf("IncDec -> --\n"); }
 	;
 
 WhileMatchedStmt : TWHILE TPUNCTUATION Expr TPUNCTUATION MatchedStmt { printf("WhileMatchedStmt -> while ( Expr ) MatchedStmt\n"); }
