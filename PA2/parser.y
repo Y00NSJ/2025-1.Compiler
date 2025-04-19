@@ -25,34 +25,34 @@ ExternalDec : Dec { printf("ExternalDec -> Dec\n"); }
 	    | FuncDef { printf("ExternalDec -> FuncDef\n"); }
 	    ;
 
-FuncDef : VarType TIDENTIFIER '(' Params ')' CpndStmt { printf("FuncDef -> Vartype %s ( Params ) CpndStmt\n", $2); }
-	| 'void' TIDENTIFIER '(' Params ')' CpndStmt { printf("FuncDef -> void %s ( Params ) CpndStmt\n", $2); }
+FuncDef : VarType TIDENTIFIER TPUNCTUATION Params TPUNCTUATION CpndStmt { printf("FuncDef -> Vartype %s ( Params ) CpndStmt\n", $2); }
+	| TVOID TIDENTIFIER TPUNCTUATION Params TPUNCTUATION CpndStmt { printf("FuncDef -> void %s ( Params ) CpndStmt\n", $2); }
 	;
 
-Dec : VarType TIDENTIFIER '(' Params ')' ';' { printf("Dec -> Vartype %s ( Params ) ;\n", $2); }
-	| 'void' TIDENTIFIER '(' Params ')' ';' { printf("Dec -> void %s ( Params ) ;\n", $2); }
+Dec : VarType TIDENTIFIER TPUNCTUATION Params TPUNCTUATION TPUNCTUATION { printf("Dec -> Vartype %s ( Params ) ;\n", $2); }
+	| TVOID TIDENTIFIER TPUNCTUATION Params TPUNCTUATION TPUNCTUATION { printf("Dec -> void %s ( Params ) ;\n", $2); }
 	| VarDec { printf("Dec -> VarDec\n"); }
 	;
 
 Params : ParamList { printf("Params -> ParamList\n"); }
-	| 'void' { printf("Params -> void\n"); }
+	| TVOID { printf("Params -> void\n"); }
 	| { printf("Params -> Empty\n"); }
 	;
 
-ParamList : ParamList ',' Param { printf("ParamList -> ParamList , Param\n"); }
+ParamList : ParamList TOPERATOR Param { printf("ParamList -> ParamList , Param\n"); }
 	  | Param { printf("ParamList -> Param\n"); }
 	  ;
 
 Param : VarType Declarator { printf("Param -> Vartype Declarator\n"); }
 	;
 
-CpndStmt : '{' LDecList StmtList '}' { printf("CpndStmt -> LDecList StmtList\n"); }
+CpndStmt : TPUNCTUATION LDecList StmtList TPUNCTUATION { printf("CpndStmt -> LDecList StmtList\n"); }
 	 ;
 
 LDecList : LDecList VarDec { printf("LDecList -> LDecList VarDec\n"); }
 	 | { printf("LDecList -> Empty\n"); }
 
-VarDec : VarType IDDecList ';' { printf("VarDec -> VarType IDDecList ;\n"); }
+VarDec : VarType IDDecList TPUNCTUATION { printf("VarDec -> VarType IDDecList ;\n"); }
 	;
 
 VarType : 'int'	{ printf("VarType -> int\n"); }
