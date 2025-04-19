@@ -55,12 +55,12 @@ LDecList : LDecList VarDec { printf("LDecList -> LDecList VarDec\n"); }
 VarDec : VarType IDDecList TPUNCTUATION { printf("VarDec -> VarType IDDecList ;\n"); }
 	;
 
-VarType : 'int'	{ printf("VarType -> int\n"); }
-	| 'char' { printf("VarType -> char\n"); }
-	| 'float' { printf("VarType -> float\n"); }
+VarType : TINT	{ printf("VarType -> int\n"); }
+	| TCHAR { printf("VarType -> char\n"); }
+	| TFLOAT { printf("VarType -> float\n"); }
 	;
 
-IDDecList : IDDecList ',' IDDec { printf("IDDecList -> IDDecList , IDDec\n"); }
+IDDecList : IDDecList TOPERATOR IDDec { printf("IDDecList -> IDDecList , IDDec\n"); }
 	  | IDDec { printf("IDDecList -> IDDec\n"); }
 	  ;
 
@@ -68,15 +68,15 @@ IDDec: Declarator '=' Initializer { printf("IDDec -> Declarator = Initializer\n"
 	| Declarator { printf("IDDec -> Declarator\n"); }
 	;
 
-Declarator : TIDENTIFIER '[' TINTEGER ']' { printf("Declarator -> %s [ %d ]\n", $1, $3); }
+Declarator : TIDENTIFIER TPUNCTUATION TINTEGER TPUNCTUATION { printf("Declarator -> %s [ %d ]\n", $1, $3); }
 	   | TINTEGER { printf("Declarator -> %d\n", $1); }
 	   ;
 
 Initializer : AssignExpr { printf("Initializer -> AssignExpr\n"); }
-	    | '{' InitializerList '}' { printf("Initializer -> { InitializerList }\n"); }
+	    | TPUNCTUATION InitializerList TPUNCTUATION { printf("Initializer -> { InitializerList }\n"); }
 	    ;
 
-InitializerList : InitializerList ',' Initializer { printf("InitializerList -> InitializerList , Initializer\n"); }
+InitializerList : InitializerList TOPERATOR Initializer { printf("InitializerList -> InitializerList , Initializer\n"); }
 		| Initializer { printf("InitializerList -> Initializer\n"); }
 		;
 
@@ -96,38 +96,38 @@ MatchedStmt : ExprStmt		{ printf("MatchedStmt -> ExprStmt\n"); }
 	    | CpndStmt		{ printf("MatchedStmt -> CpndStmt\n"); }
 	    | BreakStmt		{ printf("MatchedStmt -> BreakStmt\n"); }
 	    | SwitchStmt	{ printf("MatchedStmt -> SwitchStmt\n"); }
-	    | TIF '(' Expr ')' MatchedStmt TELSE MatchedStmt { printf("MatchedStmt -> if ( Expr ) MatchedStmt else MatchedStmt\n");}
+	    | TIF TPUNCTUATION Expr TPUNCTUATION MatchedStmt TELSE MatchedStmt { printf("MatchedStmt -> if ( Expr ) MatchedStmt else MatchedStmt\n");}
 	    ;
 
 OpenStmt : ForOpenStmt { printf("OpenStmt -> ForOpenStmt\n"); }
 	 | WhileOpenStmt { printf("OpenStmt -> WhileOpenStmt\n"); }
-	 | TIF '(' Expr ')' Stmt { printf("OpenStmt -> if ( Expr ) Stmt\n"); }
-	 | TIF '(' Expr ')' MatchedStmt TELSE OpenStmt	{ printf("OpenStmt -> if ( Expr ) MatchedStmt else OpenStmt\n"); }
+	 | TIF TPUNCTUATION Expr TPUNCTUATION Stmt { printf("OpenStmt -> if ( Expr ) Stmt\n"); }
+	 | TIF TPUNCTUATION Expr TPUNCTUATION MatchedStmt TELSE OpenStmt	{ printf("OpenStmt -> if ( Expr ) MatchedStmt else OpenStmt\n"); }
 	 ;
 
-SwitchStmt : TSWITCH '(' Expr ')' '{' CaseList DefaultCase '}' { printf("SwitchStmt -> switch ( Expr ) { CaseList DefaultCase }\n"); }
+SwitchStmt : TSWITCH TPUNCTUATION Expr TPUNCTUATION TPUNCTUATION CaseList DefaultCase TPUNCTUATION { printf("SwitchStmt -> switch ( Expr ) { CaseList DefaultCase }\n"); }
 	   ;
 
-CaseList : CaseList TCASE TINTEGER ':' StmtList { printf("CaseList -> CaseList case %d : StmtList\n", $3); }
-	 | TCASE TINTEGER ':' StmtList { printf("CaseList -> case %d : StmtList\n", $3); }
+CaseList : CaseList TCASE TINTEGER TPUNCTUATION StmtList { printf("CaseList -> CaseList case %d : StmtList\n", $3); }
+	 | TCASE TINTEGER TPUNCTUATION StmtList { printf("CaseList -> case %d : StmtList\n", $3); }
 	 ;
 
-DefaultCase : TDEFAULT : StmtList { printf("DefaultCase -> default : StmtList\n"); }
+DefaultCase : TDEFAULT TPUNCTUATION StmtList { printf("DefaultCase -> default : StmtList\n"); }
 	    | { printf("DefaultCase -> Empty\n"); }
 	    ;
 
-ReturnStmt : TRETURN Expr ';' { printf("ReturnStmt -> return Expr ;\n"); }
-	   | TRETURN ';' { printf("ReturnStmt -> return ;\n"); }
+ReturnStmt : TRETURN Expr TPUNCTUATION { printf("ReturnStmt -> return Expr ;\n"); }
+	   | TRETURN TPUNCTUATION { printf("ReturnStmt -> return ;\n"); }
 	   ;
 
-BreakStmt : TBREAK ';' { printf("BreakStmt -> break ;\n"); }
+BreakStmt : TBREAK TPUNCTUATION { printf("BreakStmt -> break ;\n"); }
 	  ;
 
-ExprStmt : Expr ';' { printf("ExprStmt -> Expr ;\n"); }
-	 | ';' { printf("ExprStmt -> ;\n"); }
+ExprStmt : Expr TPUNCTUATION { printf("ExprStmt -> Expr ;\n"); }
+	 | TPUNCTUATION { printf("ExprStmt -> ;\n"); }
 	 ;
 
-Expr : Expr ',' AssignExpr { printf("Expr -> Expr , AssignExpr\n"); }
+Expr : Expr TOPERATOR AssignExpr { printf("Expr -> Expr , AssignExpr\n"); }
      | AssignExpr { printf("Expr -> AssignExpr\n"); }
      ;
 
@@ -140,7 +140,7 @@ AssignExpr : Variable '=' AssignExpr { printf("AssignExpr -> Variable = AssignEx
 	   | SimpleExpr { printf("AssignExpr -> SimpleExpr\n"); }
 	   ;
 
-Variable : TIDENTIFIER '[' Expr ']' { printf("Variable -> %s [ Expr ]\n", $1); }
+Variable : TIDENTIFIER TPUNCTUATION Expr TPUNCTUATION { printf("Variable -> %s [ Expr ]\n", $1); }
 	 | TIDENTIFIER { printf("Variable -> %s\n", $1); }
 	 ;
 
@@ -175,7 +175,7 @@ Term : Term '*' Factor { printf("Term -> Term * Factor\n"); }
 	| Factor { printf("Term -> Factor\n"); }
 	;
 
-Factor : '(' Expr ')' { printf("Factor -> ( Expr )\n"); }
+Factor : TPUNCTUATION Expr TPUNCTUATION { printf("Factor -> ( Expr )\n"); }
 	| FuncCall { printf("Factor -> FuncCall\n"); }
 	| '-' Factor { printf("Factor -> - Factor\n"); }
 	| Variable { printf("Factor -> Variable\n"); }
@@ -192,30 +192,30 @@ IncDec : '+''+' { printf("IncDec -> ++\n"); }
 	| '-''-' { printf("IncDec -> --\n"); }
 	;
 
-WhileMatchedStmt : TWHILE '(' Expr ')' MatchedStmt { printf("WhileMatchedStmt -> while ( Expr ) MatchedStmt\n"); }
+WhileMatchedStmt : TWHILE TPUNCTUATION Expr TPUNCTUATION MatchedStmt { printf("WhileMatchedStmt -> while ( Expr ) MatchedStmt\n"); }
 		 ;
 
-WhileOpenStmt : TWHILE '(' Expr ')' OpenStmt { printf("WhileOpenStmt -> while ( Expr ) OpenStmt\n"); }
+WhileOpenStmt : TWHILE TPUNCTUATION Expr TPUNCTUATION OpenStmt { printf("WhileOpenStmt -> while ( Expr ) OpenStmt\n"); }
 		;
 
-DoWhileStmt : TDO Stmt TWHILE '(' Expr ')' ';' { printf("WhileMatchedStmt -> do Stmt while ( Expr ) ;\n"); }
+DoWhileStmt : TDO Stmt TWHILE TPUNCTUATION Expr TPUNCTUATION TPUNCTUATION { printf("WhileMatchedStmt -> do Stmt while ( Expr ) ;\n"); }
 		;
 
-ForMatchedStmt : TFOR '(' ExprStmt ExprStmt Expr ')' MatchedStmt { printf("ForMatchedStmt -> for ( ExprStmt ExprStmt Expr ) MatchedStmt\n"); }
+ForMatchedStmt : TFOR TPUNCTUATION ExprStmt ExprStmt Expr TPUNCTUATION MatchedStmt { printf("ForMatchedStmt -> for ( ExprStmt ExprStmt Expr ) MatchedStmt\n"); }
 		;
 
-ForOpenStmt : TFOR '(' ExprStmt ExprStmt Expr ')' OpenStmt { printf("ForOpenStmt -> for ( ExprStmt ExprStmt Expr ) OpenStmt\n"); }
+ForOpenStmt : TFOR TPUNCTUATION ExprStmt ExprStmt Expr TPUNCTUATION OpenStmt { printf("ForOpenStmt -> for ( ExprStmt ExprStmt Expr ) OpenStmt\n"); }
 		;
 
-FuncCall : TIDENTIFIER '(' Arguments ')' { printf("FuncCall -> %s ( Arguments )\n", $1); }
+FuncCall : TIDENTIFIER TPUNCTUATION Arguments TPUNCTUATION { printf("FuncCall -> %s ( Arguments )\n", $1); }
 	 ;
 
 Arguments : ArgumentList { printf("Arguments -> ArgumentList\n"); }
 	  | { printf("Arguments -> Empty\n"); }
 	  ;
 
-ArgumentList : ArgumentList ',' AssignExpr { printf("ArgumentList -> ArgumentList , AssignExpr\n"); }
-	     | ArgumentList ',' TSTRING { printf("ArgumentList -> ArgumentList , %s\n", $3); }
+ArgumentList : ArgumentList TOPERATOR AssignExpr { printf("ArgumentList -> ArgumentList , AssignExpr\n"); }
+	     | ArgumentList TOPERATOR TSTRING { printf("ArgumentList -> ArgumentList , %s\n", $3); }
 	     | AssignExpr { printf("ArgumentList -> AssignExpr\n"); }
 	     | TSTRING { printf("ArgumentList -> %s\n", $1); }
 	     ;
