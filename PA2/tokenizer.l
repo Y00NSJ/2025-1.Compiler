@@ -40,6 +40,19 @@ switch		{return TSWITCH;}
 void		{return TVOID;}
 while		{return TWHILE;}
 {ID}            {return TIDENTIFIER;}
++=		{return TPLUSASSIGN;}
+-=		{return TMINUSASSIGN;}
+*=		{return TMULASSIGN;}
+/=		{return TDIVASSIGN;}
+%=		{return TMODASSIGN;}
+==		{return TEQ;}
+!=		{return TNE;}
+||		{return TOR;}
+&&		{return TAND;}
+>=		{return TGE;}
+<=		{return TLE;}
+++		{return TINC;}
+--		{return TDEC;}
 {OPER}          {return TOPERATOR;}
 {CHAR}		{
     if (yytext[1] != '\\') {
@@ -119,19 +132,6 @@ return TINTEGER; }
     yylval.sVal = result;
 return TSTRING; }
 {CMT}		{ return TCOMMENT; }
-+=		{return TPLUSASSIGN;}
--=		{return TMINUSASSIGN;}
-*=		{return TMULASSIGN;}
-/=		{return TDIVASSIGN;}
-%=		{return TMODASSIGN;}
-==		{return TEQ;}
-!=		{return TNE;}
-||		{return TOR;}
-&&		{return TAND;}
->=		{return TGE;}
-<=		{return TLE;}
-++		{return TINC;}
---		{return TDEC;}
 {PUNC}		{return TPUNCTUATION;}
 .		{return TERROR;}
 
