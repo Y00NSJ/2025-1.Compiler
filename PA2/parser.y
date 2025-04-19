@@ -185,7 +185,7 @@ Factor : TPUNCTUATION Expr TPUNCTUATION { printf("Factor -> ( Expr )\n"); }
 	;
 
 NumberLiteral : TINTEGER { printf("NumberLiteral -> %d\n", $1); }
-		| TREAL { printf("NumberLiteral -> %.2d\n", $1); }
+		| TREAL { printf("NumberLiteral -> %.2f\n", $1); }
 		;
 
 IncDec : '+''+' { printf("IncDec -> ++\n"); }
