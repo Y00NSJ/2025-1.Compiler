@@ -118,6 +118,19 @@ return TINTEGER; }
     yylval.sVal = result;
 return TSTRING; }
 {CMT}		{ return TCOMMENT; }
++=		{return TPLUSASSIGN;}
+-=		{return TMINUSASSIGN;}
+*=		{return TMULASSIGN;}
+/=		{return TDIVASSIGN;}
+%=		{return TMODASSIGN;}
+==		{return TEQ;}
+!=		{return TNE;}
+||		{return TOR;}
+&&		{return TAND;}
+>=		{return TGE;}
+<=		{return TLE;}
+++		{return TINC;}
+--		{return TDEC;}
 {OPER}		{return TOPERATOR;}
 {PUNC}		{return TPUNCTUATION;}
 .		{return TERROR;}
