@@ -14,8 +14,8 @@ int yyerror(char*);
 %token<iVal> TINTEGER
 %token<rVal> TREAL
 %token<sVal> TIDENTIFIER TSTRING
-
 %%
+
 
 Program : Program ExternalDec { printf("Program -> Program ExternalDec\n"); }
 	| ExternalDec { printf("Program -> ExternalDec\n"); }
@@ -109,7 +109,7 @@ SwitchStmt : TSWITCH TPUNCTUATION Expr TPUNCTUATION TPUNCTUATION CaseList Defaul
 	   ;
 
 CaseList : CaseList TCASE TINTEGER TPUNCTUATION StmtList { printf("CaseList -> CaseList case %d : StmtList\n", $3); }
-	 | TCASE TINTEGER TPUNCTUATION StmtList { printf("CaseList -> case %d : StmtList\n", $3); }
+	 | TCASE TINTEGER TPUNCTUATION StmtList { printf("CaseList -> case %d : StmtList\n", $2); }
 	 ;
 
 DefaultCase : TDEFAULT TPUNCTUATION StmtList { printf("DefaultCase -> default : StmtList\n"); }
@@ -136,7 +136,7 @@ AssignExpr : Variable TOPERATOR AssignExpr { printf("AssignExpr -> Variable = As
 	   | Variable TMINUSASSIGN AssignExpr { printf("AssignExpr -> Variable -= AssignExpr\n"); }
 	   | Variable TMULASSIGN AssignExpr { printf("AssignExpr -> Variable *= AssignExpr\n"); }
 	   | Variable TDIVASSIGN AssignExpr { printf("AssignExpr -> Variable /= AssignExpr\n"); }
-	   | Variable TMODASSIGN AssignExpr { printf("AssignExpr -> Variable %= AssignExpr\n"); }
+	   | Variable TMODASSIGN AssignExpr { printf("AssignExpr -> Variable %%= AssignExpr\n"); }
 	   | SimpleExpr { printf("AssignExpr -> SimpleExpr\n"); }
 	   ;
 
@@ -171,7 +171,7 @@ AddExpr : AddExpr TOPERATOR Term { printf("AddExpr -> AddExpr + Term\n"); }
 
 Term : Term TOPERATOR Factor { printf("Term -> Term * Factor\n"); }
 	| Term TOPERATOR Factor { printf("Term -> Term / Factor\n"); }
-	| Term TOPERATOR Factor { printf("Term -> Term % Factor\n"); }
+	| Term TOPERATOR Factor { printf("Term -> Term %% Factor\n"); }
 	| Factor { printf("Term -> Factor\n"); }
 	;
 
@@ -219,6 +219,7 @@ ArgumentList : ArgumentList TOPERATOR AssignExpr { printf("ArgumentList -> Argum
 	     | AssignExpr { printf("ArgumentList -> AssignExpr\n"); }
 	     | TSTRING { printf("ArgumentList -> %s\n", $1); }
 	     ;
+
 
 %%
 
