@@ -14,7 +14,19 @@ int yyerror(char*);
 %token<iVal> TINTEGER
 %token<rVal> TREAL
 %token<sVal> TIDENTIFIER TSTRING
+
 %%
+
+Program : Program ExternalDec { printf("Program -> Program ExternalDec\n"); }
+	| ExternalDec { printf("Program -> ExternalDec\n"); }
+
+ExternalDec : Dec { printf("ExternalDec -> Dec\n"); }
+	    | FuncDef { printf("ExternalDec -> FuncDef\n"); }
+
+FuncDef : VarType TIDENTIFIER '(' Params ')' CpndStmt { printf("FuncDef -> Vartype %s ( Params ) CpndStmt\n", $2); }
+	| 'void' TIDENTIFIER '(' Params ')' ';' { printf("FuncDef -> void %s ( Params ) ;\n", %2); }
+	| VarDec { printf("FuncDef -> VarDec\n"); }
+
 
 %%
 
