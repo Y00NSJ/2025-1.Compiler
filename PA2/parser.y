@@ -181,7 +181,7 @@ Term : Term TMUL Factor { printf("Term -> Term * Factor\n"); }
 
 Factor : TLPAREN Expr TRPAREN { printf("Factor -> ( Expr )\n"); }
 	| FuncCall { printf("Factor -> FuncCall\n"); }
-	| TOPERATOR Factor { printf("Factor -> - Factor\n"); }
+	| TMINUS Factor { printf("Factor -> - Factor\n"); }
 	| Variable { printf("Factor -> Variable\n"); }
 	| Variable IncDec { printf("Factor -> Variable IncDec\n"); }
 	| IncDec Variable { printf("Factor -> IncDec Variable\n"); }
