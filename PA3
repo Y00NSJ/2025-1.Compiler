@@ -41,8 +41,26 @@ ExternalDec : Dec {}
 	    | FuncDef {}
 	    ;
 
-FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {}
-	| TVOID TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {}
+FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt { 
+	ASTNode* csNode = pop();
+	ASTNode* pNode = pop();
+	ASTNode* tNode = pop();
+	ASTNode* idNode = makeASTNodeID($2);
+	ASTNode* fdNode = makeASTNode(_FUNCDEF);
+	fdNode = setChild(fdNode, setSibling(tNode, idNode));
+	fdNode = setLastSibling(getChild(fdNode), pNode);
+	push(setLastSibling(getChild(fdNode), csNode));
+}
+	| TVOID TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {
+		ASTNode* csNode = pop();
+		ASTNode* pNode = pop();
+		ASTNode* voidNode = pop();
+		ASTNode* idNode = makeASTNodeID($2);
+		ASTNode* fdNode = makeASTNode(_FUNCDEF);
+		fdNode = setChild(fdNode, setSibling(voidNode, idNode));
+		fdNode = setLastSibling(getChild(fdNode), pNode);
+		push(setLastSibling(getChild(fdNode), csNode));
+	}
 	;
 
 Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {}
