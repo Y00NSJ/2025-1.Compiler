@@ -23,8 +23,18 @@ STACK *stack;
 %%
 
 
-Program : Program ExternalDec {}
-	| ExternalDec {}
+Program : Program ExternalDec {
+	edNode = pop();
+	pNode = pop();
+	if (getChild(pNode)) {
+		setLastSibling(getChild(pNode), edNode);
+		push(pNode);
+	}
+}
+	| ExternalDec {
+		edNode = pop();
+		push(setChild(makeASTNode(_PROG), setSibling(pop(), edNode)));
+		}
 	;
 
 ExternalDec : Dec {}
