@@ -33,7 +33,7 @@ Program : Program ExternalDec {
 }
 	| ExternalDec {
 		edNode = pop();
-		push(setChild(makeASTNode(_PROG), setSibling(pop(), edNode)));
+		push(setChild(makeASTNode(_PROG), edNode));
 		}
 	;
 
