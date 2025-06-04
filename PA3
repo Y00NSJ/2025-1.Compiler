@@ -63,8 +63,20 @@ FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {
 	}
 	;
 
-Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {}
-	| TVOID TIDENTIFIER TLPAREN Params TRPAREN TSEMI {}
+Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
+	ASTNode* pNode = pop();
+	ASTNode* tNode = pop();
+	ASTNode* idNode = makeASTNodeID($2);
+	ASTNode* fdNode = setChild(makeASTNode(_FUNCDEC), setSibling(tNode, setSibling(idNode, pNode)));
+	push(fdNode);
+}
+	| TVOID TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
+		ASTNode* pNode = pop();
+		ASTNode* voidNode = pop();
+		ASTNode* idNode = makeASTNodeID($2);
+		ASTNode* fdNode = setChild(makeASTNode(_FUNCDEC), setSibling(voidNode, setSibling(idNode, pNode)));
+		push(fdNode);
+	}
 	| VarDec {}
 	;
 
