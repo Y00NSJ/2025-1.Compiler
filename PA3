@@ -24,16 +24,16 @@ STACK *stack;
 
 
 Program : Program ExternalDec {
-	edNode = pop();
-	pNode = pop();
+	ASTNode* edNode = pop(stack);
+	ASTNode* pNode = pop(stack);
 	if (getChild(pNode)) {
 		setLastSibling(getChild(pNode), edNode);
-		push(pNode);
+		push(stack, pNode);
 	}
 }
 	| ExternalDec {
-		edNode = pop();
-		push(setChild(makeASTNode(_PROG), edNode));
+		ASTNode* edNode = pop(stack);
+		push(stack, setChild(makeASTNode(_PROG), edNode));
 		}
 	;
 
@@ -42,225 +42,420 @@ ExternalDec : Dec {}
 	    ;
 
 FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt { 
-	ASTNode* csNode = pop();
-	ASTNode* pNode = pop();
-	ASTNode* tNode = pop();
+	ASTNode* csNode = pop(stack);
+	ASTNode* pNode = pop(stack);
+	ASTNode* tNode = pop(stack);
 	ASTNode* idNode = makeASTNodeID($2);
 	ASTNode* fdNode = makeASTNode(_FUNCDEF);
 	fdNode = setChild(fdNode, setSibling(tNode, idNode));
 	fdNode = setLastSibling(getChild(fdNode), pNode);
-	push(setLastSibling(getChild(fdNode), csNode));
+	push(stack, setLastSibling(getChild(fdNode), csNode));
 }
 	| TVOID TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {
-		ASTNode* csNode = pop();
-		ASTNode* pNode = pop();
-		ASTNode* voidNode = pop();
+		ASTNode* csNode = pop(stack);
+		ASTNode* pNode = pop(stack);
+		ASTNode* voidNode = pop(stack);
 		ASTNode* idNode = makeASTNodeID($2);
 		ASTNode* fdNode = makeASTNode(_FUNCDEF);
 		fdNode = setChild(fdNode, setSibling(voidNode, idNode));
 		fdNode = setLastSibling(getChild(fdNode), pNode);
-		push(setLastSibling(getChild(fdNode), csNode));
+		push(stack, setLastSibling(getChild(fdNode), csNode));
 	}
 	;
 
 Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
-	ASTNode* pNode = pop();
-	ASTNode* tNode = pop();
+	ASTNode* pNode = pop(stack);
+	ASTNode* tNode = pop(stack);
 	ASTNode* idNode = makeASTNodeID($2);
 	ASTNode* fdNode = setChild(makeASTNode(_FUNCDEC), setSibling(tNode, setSibling(idNode, pNode)));
-	push(fdNode);
+	push(stack, fdNode);
 }
 	| TVOID TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
-		ASTNode* pNode = pop();
-		ASTNode* voidNode = pop();
+		ASTNode* pNode = pop(stack);
+		ASTNode* voidNode = pop(stack);
 		ASTNode* idNode = makeASTNodeID($2);
 		ASTNode* fdNode = setChild(makeASTNode(_FUNCDEC), setSibling(voidNode, setSibling(idNode, pNode)));
-		push(fdNode);
+		push(stack, fdNode);
 	}
 	| VarDec {}
 	;
 
-Params : ParamList {}
-	| TVOID {}
-	| {}
+Params : ParamList {
+	ASTNode* plNode = pop(stack);
+	push(stack, setChild(makeASTNode(_PARAMS), plNode));
+}
+	| TVOID {push(stack, makeASTNode(_PARAMS));}
+	| {push(stack, makeASTNode(_PARAMS));}
 	;
 
-ParamList : ParamList TCOMMA Param { printf("ParamList -> ParamList , Param\n"); }
-	  | Param { printf("ParamList -> Param\n"); }
+ParamList : ParamList TCOMMA Param {
+	ASTNode* pNode = pop(stack);
+	ASTNode* plistNode = pop(stack);
+	push(stack, setLastSibling(plistNode, pNode));
+}
+	  | Param {}
 	  ;
 
-Param : VarType Declarator { printf("Param -> VarType Declarator\n"); }
+Param : VarType Declarator {
+	ASTNode* dNode = pop(stack);
+	ASTNode* tNode = pop(stack);
+	push(stack, setChild(makeASTNode(_PARAM), setSibling(tNode, dNode)));
+}
 	;
 
-CpndStmt : TLBRACE LDecList StmtList TRBRACE { printf("CpndStmt -> { LDecList StmtList }\n"); }
+CpndStmt : TLBRACE LDecList StmtList TRBRACE {
+	ASTNode* slNode = pop(stack);
+	ASTNode* ldlNode = pop(stack);
+	push(stack, setChild(makeASTNode(_CPNDSTMT), setSibling(ldlNode, slNode)));
+}
 	 ;
 
-LDecList : LDecList VarDec { printf("LDecList -> LDecList VarDec\n"); }
-	 | { printf("LDecList -> Empty\n"); }
+LDecList : LDecList VarDec {
+	ASTNode* vdNode = pop(stack);
+	ASTNode* ldlNode = pop(stack);
+	push(stack, setLastSibling(getChild(ldlNode), vdNode));
+}
+	 | {push(stack, makeASTNode(_LDECLIST));}
 
-VarDec : VarType IDDecList TSEMI { printf("VarDec -> VarType IDDecList ;\n"); }
+VarDec : VarType IDDecList TSEMI {
+	ASTNode* idlNode = pop(stack);
+	ASTNode* tNode = pop(stack);
+	push(stack, setChild(makeASTNode(_VARDEC), setSibling(tNode, idlNode)));
+}
 	;
 
-VarType : TINT	{ printf("VarType -> int\n"); }
-	| TCHAR { printf("VarType -> char\n"); }
-	| TFLOAT { printf("VarType -> float\n"); }
+VarType : TINT	{push(stack, makeASTNodeTYPE(TYPE_INT));}
+	| TCHAR {push(stack, makeASTNodeTYPE(TYPE_CHAR)); }
+	| TFLOAT { push(stack, makeASTNodeTYPE(TYPE_FLOAT)); }
 	;
 
-IDDecList : IDDecList TCOMMA IDDec { printf("IDDecList -> IDDecList , IDDec\n"); }
-	  | IDDec { printf("IDDecList -> IDDec\n"); }
+IDDecList : IDDecList TCOMMA IDDec {
+	ASTNode* iddNode = pop(stack);
+	ASTNode* iddListNode = pop(stack);
+	push(stack, setLastSibling(getChild(iddListNode), iddNode));
+ }
+	  | IDDec {
+		ASTNode* iddNode = pop(stack);
+		push(stack, setChild(makeASTNode(_IDDECLIST), iddNode));
+	  }
 	  ;
 
-IDDec: Declarator TOPERATOR Initializer { printf("IDDec -> Declarator = Initializer\n"); }
-	| Declarator { printf("IDDec -> Declarator\n"); }
+IDDec: Declarator TOPERATOR Initializer {
+	ASTNode* iNode = pop(stack);
+	ASTNode* dNode = pop(stack);
+	push(stack, setChild(dNode, iNode));
+}
+	| Declarator {}
 	;
 
-Declarator : TIDENTIFIER TLBRACKET TINTEGER TRBRACKET { printf("Declarator -> %s [ %d ]\n", $1, $3); }
-	   | TIDENTIFIER { printf("Declarator -> %s\n", $1); free($1); }
+Declarator : TIDENTIFIER { push(stack, makeASTNodeID($1)); }
 	   ;
 
-Initializer : AssignExpr { printf("Initializer -> AssignExpr\n"); }
-	    | TLBRACE InitializerList TRBRACE { printf("Initializer -> { InitializerList }\n"); }
+Initializer : AssignExpr {}
 	    ;
 
-InitializerList : InitializerList TCOMMA Initializer %prec LOWCOMMA { printf("InitializerList -> InitializerList , Initializer\n"); }
-		| Initializer { printf("InitializerList -> Initializer\n"); }
-		;
-
-StmtList : StmtList Stmt { printf("StmtList -> StmtList Stmt\n"); }
-	 | { printf("StmtList -> Empty\n"); }
+StmtList : StmtList Stmt {
+	ASTNode* stmtNode = pop(stack);
+	ASTNode* slNode = pop(stack);
+	push(stack, setLastSibling(getChild(slNode), stmtNode));
+}
+	 | {push(stack, makeASTNode(_STMTLIST));}
 	 ;
 
-Stmt : MatchedStmt { printf("Stmt -> MatchedStmt\n"); }
-     | OpenStmt { printf("Stmt -> OpenStmt\n"); }
+Stmt : MatchedStmt {}
+     | OpenStmt {}
      ;
 
-MatchedStmt : ExprStmt		{ printf("MatchedStmt -> ExprStmt\n"); }
-	    | ForMatchedStmt	{ printf("MatchedStmt -> ForMatchedStmt\n"); }
-	    | WhileMatchedStmt	{ printf("MatchedStmt -> WhileMatchedStmt\n"); }
-	    | DoWhileStmt	{ printf("MatchedStmt -> DoWhileStmt\n"); }
-	    | ReturnStmt	{ printf("MatchedStmt -> ReturnStmt\n"); }
-	    | CpndStmt		{ printf("MatchedStmt -> CpndStmt\n"); }
-	    | BreakStmt		{ printf("MatchedStmt -> BreakStmt\n"); }
-	    | SwitchStmt	{ printf("MatchedStmt -> SwitchStmt\n"); }
-	    | TIF TLPAREN Expr TRPAREN MatchedStmt TELSE MatchedStmt { printf("MatchedStmt -> if ( Expr ) MatchedStmt else MatchedStmt\n");}
+MatchedStmt : ExprStmt		{}
+	    | ForMatchedStmt	{}
+	    | WhileMatchedStmt	{}
+	    | DoWhileStmt	{}
+	    | ReturnStmt	{}
+	    | CpndStmt		{}
+	    | BreakStmt		{}
+	    | SwitchStmt	{}
+	    | TIF TLPAREN Expr TRPAREN MatchedStmt TELSE MatchedStmt {
+			ASTNode* stmtNode = pop(stack);
+			ASTNode* mStmtNode = pop(stack);
+			ASTNode* exprNode = pop(stack);
+			push(stack, setChild(makeASTNode(_IFSTMT), setSibling(exprNode, setSibling(mStmtNode, stmtNode))));
+		}
 	    ;
 
-OpenStmt : ForOpenStmt { printf("OpenStmt -> ForOpenStmt\n"); }
-	 | WhileOpenStmt { printf("OpenStmt -> WhileOpenStmt\n"); }
-	 | TIF TLPAREN Expr TRPAREN Stmt { printf("OpenStmt -> if ( Expr ) Stmt\n"); }
-	 | TIF TLPAREN Expr TRPAREN MatchedStmt TELSE OpenStmt	{ printf("OpenStmt -> if ( Expr ) MatchedStmt else OpenStmt\n"); }
+OpenStmt : ForOpenStmt {}
+	 | WhileOpenStmt {}
+	 | TIF TLPAREN Expr TRPAREN Stmt {
+		ASTNode* stmtNode = pop(stack);
+		ASTNode* exprNode = pop(stack);
+		push(stack, setChild(makeASTNode(_IFSTMT), setSibling(exprNode, stmtNode)));
+	 }
+	 | TIF TLPAREN Expr TRPAREN MatchedStmt TELSE OpenStmt	{
+			ASTNode* stmtNode = pop(stack);
+			ASTNode* mStmtNode = pop(stack);
+			ASTNode* exprNode = pop(stack);
+			push(stack, setChild(makeASTNode(_IFSTMT), setSibling(exprNode, setSibling(mStmtNode, stmtNode))));
+	 }
 	 ;
 
-SwitchStmt : TSWITCH TLPAREN Expr TRPAREN TLBRACE CaseList DefaultCase TRBRACE { printf("SwitchStmt -> switch ( Expr ) { CaseList DefaultCase }\n"); }
+SwitchStmt : TSWITCH TLPAREN Expr TRPAREN TLBRACE CaseList DefaultCase TRBRACE {
+	ASTNode* defaultNode = pop(stack);
+	ASTNode* caseNode = pop(stack);
+	ASTNode* exprNode = pop(stack);
+	push(stack, setChild(makeASTNode(_SWSTMT), setSibling(exprNode, setLastSibling(caseNode, defaultNode))));
+}
 	   ;
 
-CaseList : CaseList TCASE TINTEGER TCOLON StmtList { printf("CaseList -> CaseList case %d : StmtList\n", $3); }
-	 | TCASE TINTEGER TCOLON StmtList { printf("CaseList -> case %d : StmtList\n", $2); }
+CaseList : CaseList TCASE TINTEGER TCOLON StmtList {
+	ASTNode* slNode = pop(stack);
+	ASTNode* intNode = makeASTNodeINT($3);
+	ASTNode* clNode = pop(stack);
+	push(stack, setLastSibling(clNode, setSibling(makeASTNode(_CASE), setSibling(intNode, slNode))));
+}
+	 | TCASE TINTEGER TCOLON StmtList {
+		ASTNode* slNode = pop(stack);
+		ASTNode* intNode = makeASTNodeINT($2);
+		push(stack, setChild(makeASTNode(_CASE), setSibling(intNode, slNode)));
+	 }
 	 ;
 
-DefaultCase : TDEFAULT TCOLON StmtList { printf("DefaultCase -> default : StmtList\n"); }
-	    | { printf("DefaultCase -> Empty\n"); }
+DefaultCase : TDEFAULT TCOLON StmtList {
+	ASTNode* slNode = pop(stack);
+	push(stack, setChild(makeASTNode(_DEFAULT), slNode));
+}
+	    | {push(stack, makeASTNode(_DEFAULT));}
 	    ;
 
-ReturnStmt : TRETURN Expr TSEMI { printf("ReturnStmt -> return Expr ;\n"); }
-	   | TRETURN TSEMI { printf("ReturnStmt -> return ;\n"); }
+ReturnStmt : TRETURN Expr TSEMI {
+	ASTNode* eNode = pop(stack);
+	push(stack, setChild(makeASTNode(_RTSTMT), eNode));
+}
+	   | TRETURN TSEMI {push(stack, makeASTNode(_RTSTMT));}
 	   ;
 
-BreakStmt : TBREAK TSEMI { printf("BreakStmt -> break ;\n"); }
+BreakStmt : TBREAK TSEMI {
+	if (getType(stack.top()))
+}
 	  ;
 
-ExprStmt : Expr TSEMI { printf("ExprStmt -> Expr ;\n"); }
-	 | TSEMI { printf("ExprStmt -> ;\n"); }
+ExprStmt : Expr TSEMI {
+	ASTNode* eNode = pop(stack);
+	push(stack, setChild(makeASTNode(_EXPRSTMT), eNode));
+}
+	 | TSEMI {push(stack, makeASTNode(_EXPRSTMT));}
 	 ;
 
-Expr : Expr TCOMMA AssignExpr { printf("Expr -> Expr , AssignExpr\n"); }
-     | AssignExpr { printf("Expr -> AssignExpr\n"); }
+Expr : Expr TCOMMA AssignExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* eNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(COMMA_), setSibling(eNode, aeNode)));
+}
+     | AssignExpr {}
      ;
 
-AssignExpr : Variable TOPERATOR AssignExpr { printf("AssignExpr -> Variable = AssignExpr\n"); }
-	   | Variable TPLUSASSIGN AssignExpr { printf("AssignExpr -> Variable += AssignExpr\n"); }
-	   | Variable TMINUSASSIGN AssignExpr { printf("AssignExpr -> Variable -= AssignExpr\n"); }
-	   | Variable TMULASSIGN AssignExpr { printf("AssignExpr -> Variable *= AssignExpr\n"); }
-	   | Variable TDIVASSIGN AssignExpr { printf("AssignExpr -> Variable /= AssignExpr\n"); }
-	   | Variable TMODASSIGN AssignExpr { printf("AssignExpr -> Variable %%= AssignExpr\n"); }
-	   | SimpleExpr { printf("AssignExpr -> SimpleExpr\n"); }
+AssignExpr : Variable TOPERATOR AssignExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* vNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(ASSIGN_), setSibling(vNode, aeNode)));
+}
+	   | Variable TPLUSASSIGN AssignExpr {
+			ASTNode* aeNode = pop(stack);
+			ASTNode* vNode = pop(stack);
+			push(stack, setChild(makeASTNodeOP(ADDASSIGN_), setSibling(vNode, aeNode)));
+	   }
+	   | Variable TMINUSASSIGN AssignExpr {
+			ASTNode* aeNode = pop(stack);
+			ASTNode* vNode = pop(stack);
+			push(stack, setChild(makeASTNodeOP(SUBASSIGN_), setSibling(vNode, aeNode)));
+	   }
+	   | Variable TMULASSIGN AssignExpr {
+			ASTNode* aeNode = pop(stack);
+			ASTNode* vNode = pop(stack);
+			push(stack, setChild(makeASTNodeOP(MULTASSIGN_), setSibling(vNode, aeNode)));
+	   }
+	   | Variable TDIVASSIGN AssignExpr {
+			ASTNode* aeNode = pop(stack);
+			ASTNode* vNode = pop(stack);
+			push(stack, setChild(makeASTNodeOP(DIVASSIGN_), setSibling(vNode, aeNode)));
+	   }
+	   | Variable TMODASSIGN AssignExpr {
+			ASTNode* aeNode = pop(stack);
+			ASTNode* vNode = pop(stack);
+			push(stack, setChild(makeASTNodeOP(MODASSIGN_), setSibling(vNode, aeNode)));
+	   }
+	   | SimpleExpr {}
 	   ;
 
-Variable : TIDENTIFIER TLBRACKET Expr TLBRACKET { printf("Variable -> %s [ Expr ]\n", $1); free($1); }
-	 | TIDENTIFIER { printf("Variable -> %s\n", $1); free($1); }
+Variable : TIDENTIFIER {push(stack, makeASTNodeID($1));}
 	 ;
 
-SimpleExpr : SimpleExpr TOR AndExpr { printf("SimpleExpr -> SimpleExpr || AndExpr\n"); }
-	   | AndExpr { printf("SimpleExpr -> AndExpr\n"); }
+SimpleExpr : SimpleExpr TOR AndExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(OR_), setSibling(seNode, aeNode)));
+}
+	   | AndExpr {}
 	   ;
 
-AndExpr : AndExpr TAND EqualityExpr { printf("AndExpr -> AndExpr && EqualityExpr\n"); }
-	| EqualityExpr { printf("AndExpr -> EqualityExpr\n"); }
+AndExpr : AndExpr TAND EqualityExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(AND_), setSibling(seNode, aeNode)));
+}
+	| EqualityExpr {}
 	;
 
-EqualityExpr : EqualityExpr TEQ RelExpr { printf("EqualityExpr -> EqualityExpr == RelExpr\n"); }
-	     | EqualityExpr TNE RelExpr { printf("EqualityExpr -> EqualityExpr != RelExpr\n"); }
-	     | RelExpr { printf("EqualityExpr -> RelExpr\n"); }
+EqualityExpr : EqualityExpr TEQ RelExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(EQ_), setSibling(seNode, aeNode)));
+}
+	     | EqualityExpr TNE RelExpr {
+			ASTNode* aeNode = pop(stack);
+		ASTNode* seNode = pop(stack);
+		push(stack, setChild(makeASTNodeOP(NE_), setSibling(seNode, aeNode)));
+		 }
+	     | RelExpr {}
 	     ;
 
-RelExpr : RelExpr TLT AddExpr { printf("RelExpr -> RelExpr < AddExpr\n"); }
-	| RelExpr TLE AddExpr { printf("RelExpr -> RelExpr <= AddExpr\n"); }
-	| RelExpr TGT AddExpr { printf("RelExpr -> RelExpr > AddExpr\n"); }
-	| RelExpr TGE AddExpr { printf("RelExpr -> RelExpr >= AddExpr\n"); }
-	| AddExpr { printf("RelExpr -> AddExpr\n"); }
+RelExpr : RelExpr TLT AddExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(LT_), setSibling(seNode, aeNode)));
+}
+	| RelExpr TLE AddExpr {
+		ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(LE_), setSibling(seNode, aeNode)));
+	}
+	| RelExpr TGT AddExpr {
+		ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(GT_), setSibling(seNode, aeNode)));
+	}
+	| RelExpr TGE AddExpr {
+		ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(GE_), setSibling(seNode, aeNode)));
+	}
+	| AddExpr {}
 	;
 
-AddExpr : AddExpr TPLUS Term { printf("AddExpr -> AddExpr + Term\n"); }
-	| AddExpr TMINUS Term { printf("AddExpr -> AddExpr - Term\n"); }
-	| Term		   { printf("AddExpr -> Term\n"); }
+AddExpr : AddExpr TPLUS Term {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(PLUS_), setSibling(seNode, aeNode)));
+}
+	| AddExpr TMINUS Term {
+			ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(MINUS_), setSibling(seNode, aeNode)));
+	}
+	| Term		   {}
 	;
 
-Term : Term TMUL Factor { printf("Term -> Term * Factor\n"); }
-	| Term TDIV Factor { printf("Term -> Term / Factor\n"); }
-	| Term TMOD Factor { printf("Term -> Term %% Factor\n"); }
-	| Factor { printf("Term -> Factor\n"); }
+Term : Term TMUL Factor {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(MULT_), setSibling(seNode, aeNode)));
+}
+	| Term TDIV Factor {
+			ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(DIV_), setSibling(seNode, aeNode)));
+	}
+	| Term TMOD Factor {
+					ASTNode* aeNode = pop(stack);
+	ASTNode* seNode = pop(stack);
+	push(stack, setChild(makeASTNodeOP(MOD_), setSibling(seNode, aeNode)));
+	}
+	| Factor {}
 	;
 
-Factor : TLPAREN Expr TRPAREN { printf("Factor -> ( Expr )\n"); }
-	| FuncCall { printf("Factor -> FuncCall\n"); }
-	| TMINUS Factor { printf("Factor -> - Factor\n"); }
-	| Variable { printf("Factor -> Variable\n"); }
-	| Variable IncDec { printf("Factor -> Variable IncDec\n"); }
-	| IncDec Variable { printf("Factor -> IncDec Variable\n"); }
-	| NumberLiteral { printf("Factor -> NumberLiteral\n"); }
+Factor : TLPAREN Expr TRPAREN {}
+	| FuncCall {}
+	| TMINUS Factor {
+		ASTNode* fNode = pop(stack);
+		push(stack, setChild(makeASTNodeOP(MINUS_), fNode));
+	}
+	| Variable {}
+	| Variable IncDec {
+		ASTNode* incDecNode = pop(stack);
+		ASTNode* vNode = pop(stack);
+		push(stack, setChild(makeASTNode(_INCDECEXP)), setSibling(vNode, incDecNode));
+	}
+	| IncDec Variable {
+		ASTNode* vNode = pop(stack);
+		ASTNode* incDecNode = pop(stack);
+		push(stack, setChild(makeASTNode(_INCDECEXP)), setSibling(incDecNode, vNode));
+	}
+	| NumberLiteral {}
 	;
 
-NumberLiteral : TINTEGER {}
-		| TREAL {}
+NumberLiteral : TINTEGER {push(stack, makeASTNode(_INTEGER));}
+		| TREAL {push(stack, makeASTNode(_REAL));}
 		;
 
-IncDec : TINC {}
-	| TDEC {}
+IncDec : TINC {push(stack, makeASTNodeOP(INC_));}
+	| TDEC {push(stack, makeASTNodeOP(DEC_));}
 	;
 
-WhileMatchedStmt : TWHILE TLPAREN Expr TRPAREN MatchedStmt {}
+WhileMatchedStmt : TWHILE TLPAREN Expr TRPAREN MatchedStmt {
+	ASTNode* stmtNode = pop(stack);
+	ASTNode* exprNode = pop(stack);
+	push(stack, setChild(makeASTNode(_WHLSTMT), setSibling(exprNode, stmtNode)));
+}
 		 ;
 
-WhileOpenStmt : TWHILE TLPAREN Expr TRPAREN OpenStmt {}
+WhileOpenStmt : TWHILE TLPAREN Expr TRPAREN OpenStmt {
+		ASTNode* stmtNode = pop(stack);
+	ASTNode* exprNode = pop(stack);
+	push(stack, setChild(makeASTNode(_WHLSTMT), setSibling(exprNode, stmtNode)));
+}
 		;
 
-DoWhileStmt : TDO Stmt TWHILE TLPAREN Expr TRPAREN TSEMI {}
+DoWhileStmt : TDO Stmt TWHILE TLPAREN Expr TRPAREN TSEMI {
+		ASTNode* stmtNode = pop(stack);
+	ASTNode* exprNode = pop(stack);
+	push(stack, setChild(makeASTNode(_DOWHLSTMT), setSibling(exprNode, stmtNode)));
+}
 		;
 
-ForMatchedStmt : TFOR TLPAREN ExprStmt ExprStmt Expr TRPAREN MatchedStmt {}
+ForMatchedStmt : TFOR TLPAREN ExprStmt ExprStmt Expr TRPAREN MatchedStmt {
+	ASTNode* msNode = pop(stack);
+	ASTNode* eNode = pop(stack);
+	ASTNode* esNode = pop(stack);
+	ASTNode* initialEsNode = pop(stack);
+	push(stack, setChild(makeASTNode(_FORSTMT), setSibling(initialEsNode, setSibling(esNode, setSibling(eNode, msNode)))));
+}
 		;
 
-ForOpenStmt : TFOR TLPAREN ExprStmt ExprStmt Expr TRPAREN OpenStmt {}
+ForOpenStmt : TFOR TLPAREN ExprStmt ExprStmt Expr TRPAREN OpenStmt {
+	ASTNode* msNode = pop(stack);
+	ASTNode* eNode = pop(stack);
+	ASTNode* esNode = pop(stack);
+	ASTNode* initialEsNode = pop(stack);
+	push(stack, setChild(makeASTNode(_FORSTMT), setSibling(initialEsNode, setSibling(esNode, setSibling(eNode, msNode)))));
+}
 		;
 
-FuncCall : TIDENTIFIER TLPAREN Arguments TRPAREN {}
+FuncCall : TIDENTIFIER TLPAREN Arguments TRPAREN {
+	ASTNode* argsNode = pop(stack);
+	push(stack, setChild(makeASTNode(_FUNCCALL), setSibling(makeASTNode(_ID), argsNode)));
+}
 	 ;
 
-Arguments : ArgumentList {}
-	  | {}
+Arguments : ArgumentList {
+	ASTNode* alNode = pop(stack);
+	push(stack, setChild(makeASTNode(_ARGS), alNode));
+}
+	  | {push(stack, makeASTNode(_ARGS));}
 	  ;
 
-ArgumentList : ArgumentList TCOMMA AssignExpr {}
+ArgumentList : ArgumentList TCOMMA AssignExpr {
+	ASTNode* aeNode = pop(stack);
+	ASTNode* argsListNode = pop(stack);
+	push(stack, setSibling(argsListNode, aeNode));
+}
 	     | ArgumentList TCOMMA TSTRING {}
 	     | AssignExpr {}
 	     | TSTRING {}
