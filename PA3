@@ -440,7 +440,7 @@ ForOpenStmt : TFOR TLPAREN ExprStmt ExprStmt Expr TRPAREN OpenStmt {
 
 FuncCall : TIDENTIFIER TLPAREN Arguments TRPAREN {
 	ASTNode* argsNode = pop(stack);
-	push(stack, setChild(makeASTNode(_FUNCCALL), setSibling(makeASTNode(_ID), argsNode)));
+	push(stack, setChild(makeASTNode(_FUNCCALL), setSibling(makeASTNodeID($1), argsNode)));
 }
 	 ;
 
