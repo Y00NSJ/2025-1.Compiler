@@ -1,6 +1,6 @@
 %{
 #include <stdio.h>
-#include "ast.h"
+#include "taclib.h"
 int yylex(void);
 int yyerror(char*);
 STACK *stack;
@@ -536,18 +536,16 @@ ArgumentList : ArgumentList TCOMMA AssignExpr {
 %%
 
 int main(int argc, char* argv[]){
+	ASTNode* root;
 	extern FILE *yyin;
-	ASTNode* root = 0;
 	stack = initStack();
 	yyin = fopen(argv[1], "r");
 	yyparse();
 	fclose(yyin);
-	printAST(root = pop(stack));
-	if (root) {
-		delAST(root);
-		root = 0;
-	}
+	root = pop(stack);
 	delStack(stack);
+	generate(root, argv[1]);
+	delAST(root);
 	return 0;
 }
 
