@@ -26,9 +26,17 @@ STACK *stack;
 Program : Program ExternalDec {
 	ASTNode* edNode = pop(stack);
 	ASTNode* pNode = pop(stack);
-	if (getChild(pNode)) {
-		setLastSibling(getChild(pNode), edNode);
-		push(stack, pNode);
+	if (pNode && edNode) {
+		ASTNode* child = getChild(pNode);
+		if (child) {
+			setLastSibling(child, edNode);
+			push(stack, pNode);
+		} else {
+			push(stack, setChild(pNode, edNode));
+		}
+	} else {
+		yyerror("Program reduction에서 NULL 노드 발생");
+		YYABORT;
 	}
 }
 	| ExternalDec {
@@ -37,8 +45,14 @@ Program : Program ExternalDec {
 		}
 	;
 
-ExternalDec : Dec {}
-	    | FuncDef {}
+ExternalDec : Dec {
+	ASTNode* dNode = pop(stack);
+	push(stack, dNode);
+}
+	    | FuncDef {
+	ASTNode* fNode = pop(stack);
+	push(stack, fNode);
+}
 	    ;
 
 FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt { 
@@ -47,19 +61,17 @@ FuncDef : VarType TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {
 	ASTNode* tNode = pop(stack);
 	ASTNode* idNode = makeASTNodeID($2);
 	ASTNode* fdNode = makeASTNode(_FUNCDEF);
-	fdNode = setChild(fdNode, setSibling(tNode, idNode));
-	fdNode = setLastSibling(getChild(fdNode), pNode);
-	push(stack, setLastSibling(getChild(fdNode), csNode));
+	ASTNode* seq = setSibling(tNode, setSibling(idNode, setSibling(pNode, csNode)));
+	push(stack, setChild(fdNode, seq));
 }
 	| TVOID TIDENTIFIER TLPAREN Params TRPAREN CpndStmt {
 		ASTNode* csNode = pop(stack);
 		ASTNode* pNode = pop(stack);
-		ASTNode* voidNode = pop(stack);
+		ASTNode* voidNode = makeASTNodeTYPE(TYPE_VOID);
 		ASTNode* idNode = makeASTNodeID($2);
 		ASTNode* fdNode = makeASTNode(_FUNCDEF);
-		fdNode = setChild(fdNode, setSibling(voidNode, idNode));
-		fdNode = setLastSibling(getChild(fdNode), pNode);
-		push(stack, setLastSibling(getChild(fdNode), csNode));
+		ASTNode* seq = setSibling(voidNode, setSibling(idNode, setSibling(pNode, csNode)));
+		push(stack, setChild(fdNode, seq));
 	}
 	;
 
@@ -72,7 +84,7 @@ Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
 }
 	| TVOID TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
 		ASTNode* pNode = pop(stack);
-		ASTNode* voidNode = pop(stack);
+		ASTNode* voidNode = makeASTNodeTYPE(TYPE_VOID);
 		ASTNode* idNode = makeASTNodeID($2);
 		ASTNode* fdNode = setChild(makeASTNode(_FUNCDEC), setSibling(voidNode, setSibling(idNode, pNode)));
 		push(stack, fdNode);
@@ -81,7 +93,9 @@ Dec : VarType TIDENTIFIER TLPAREN Params TRPAREN TSEMI {
 	;
 
 Params : ParamList {
-	ASTNode* plNode = pop(stack);
+	ASTNode* plNode = 0;
+//	printStack(stack);
+	plNode = pop(stack);
 	push(stack, setChild(makeASTNode(_PARAMS), plNode));
 }
 	| TVOID {push(stack, makeASTNode(_PARAMS));}
@@ -97,23 +111,40 @@ ParamList : ParamList TCOMMA Param {
 	  ;
 
 Param : VarType Declarator {
-	ASTNode* dNode = pop(stack);
-	ASTNode* tNode = pop(stack);
+	ASTNode* dNode = 0;
+	ASTNode* tNode = 0;
+//	printStack(stack);
+	dNode = pop(stack);
+	tNode = pop(stack);
 	push(stack, setChild(makeASTNode(_PARAM), setSibling(tNode, dNode)));
 }
 	;
 
 CpndStmt : TLBRACE LDecList StmtList TRBRACE {
-	ASTNode* slNode = pop(stack);
-	ASTNode* ldlNode = pop(stack);
-	push(stack, setChild(makeASTNode(_CPNDSTMT), setSibling(ldlNode, slNode)));
+	ASTNode* slNode = 0;
+	ASTNode* ldlNode = 0;
+	ASTNode* cpnd = makeASTNode(_CPNDSTMT);
+	ASTNode* seq = 0;
+
+//	printStack(stack);
+	slNode = pop(stack);
+	ldlNode = pop(stack);
+	seq = setSibling(ldlNode, slNode);
+	push(stack, setChild(cpnd, seq));
+
+//	printStack(stack);
 }
 	 ;
 
 LDecList : LDecList VarDec {
 	ASTNode* vdNode = pop(stack);
 	ASTNode* ldlNode = pop(stack);
-	push(stack, setLastSibling(getChild(ldlNode), vdNode));
+	ASTNode* child = getChild(ldlNode);
+	if (child) {
+		push(stack, setLastSibling(child, vdNode));
+	} else {
+		push(stack, setChild(ldlNode, vdNode));
+	}
 }
 	 | {push(stack, makeASTNode(_LDECLIST));}
 
@@ -125,14 +156,20 @@ VarDec : VarType IDDecList TSEMI {
 	;
 
 VarType : TINT	{push(stack, makeASTNodeTYPE(TYPE_INT));}
-	| TCHAR {push(stack, makeASTNodeTYPE(TYPE_CHAR)); }
+	| TCHAR {push(stack, makeASTNodeTYPE(TYPE_INT)); }
 	| TFLOAT { push(stack, makeASTNodeTYPE(TYPE_FLOAT)); }
 	;
 
 IDDecList : IDDecList TCOMMA IDDec {
 	ASTNode* iddNode = pop(stack);
 	ASTNode* iddListNode = pop(stack);
-	push(stack, setLastSibling(getChild(iddListNode), iddNode));
+	ASTNode* child = getChild(iddListNode);
+	if (child) {
+		setLastSibling(child, iddNode);
+		push(stack, iddListNode);
+	} else {
+		push(stack, setChild(iddListNode, iddNode));
+	}
  }
 	  | IDDec {
 		ASTNode* iddNode = pop(stack);
@@ -157,7 +194,13 @@ Initializer : AssignExpr {}
 StmtList : StmtList Stmt {
 	ASTNode* stmtNode = pop(stack);
 	ASTNode* slNode = pop(stack);
-	push(stack, setLastSibling(getChild(slNode), stmtNode));
+	ASTNode* child = getChild(slNode);
+	if (child) {
+		setLastSibling(child, stmtNode);
+		push(stack, slNode);
+	} else {
+		push(stack, setChild(slNode, stmtNode));
+	}
 }
 	 | {push(stack, makeASTNode(_STMTLIST));}
 	 ;
@@ -209,7 +252,12 @@ CaseList : CaseList TCASE TINTEGER TCOLON StmtList {
 	ASTNode* slNode = pop(stack);
 	ASTNode* intNode = makeASTNodeINT($3);
 	ASTNode* clNode = pop(stack);
-	push(stack, setLastSibling(clNode, setSibling(makeASTNode(_CASE), setSibling(intNode, slNode))));
+	ASTNode* caseGroup = setChild(makeASTNode(_CASE), setSibling(intNode, slNode));
+	if (clNode) {
+		push(stack, setLastSibling(clNode, caseGroup));
+	} else {
+		push(stack, caseGroup);
+	}
 }
 	 | TCASE TINTEGER TCOLON StmtList {
 		ASTNode* slNode = pop(stack);
@@ -233,7 +281,26 @@ ReturnStmt : TRETURN Expr TSEMI {
 	   ;
 
 BreakStmt : TBREAK TSEMI {
-	if (getType(stack.top()))
+/*	ASTNode* context = pop(stack);
+	ASTNode* cur = getChild(context);
+	int valid = 0;
+
+	while (cur) {
+		TKNUM tk = getTkNum(cur);
+		if (tk == _WHLSTMT || tk == _FORSTMT || tk == _DOWHLSTMT || tk == _SWSTMT) {
+			valid = 1;
+			break;
+		}
+		cur = getSibling(cur);
+	}
+	push(stack, context);
+
+	if (!valid) {
+		yyerror("break문은 반복문이나 switch문 내에서만 사용할 수 있습니다.");
+		YYABORT;
+	}
+*/
+	push(stack, makeASTNode(_BRKSTMT));
 }
 	  ;
 
@@ -381,18 +448,18 @@ Factor : TLPAREN Expr TRPAREN {}
 	| Variable IncDec {
 		ASTNode* incDecNode = pop(stack);
 		ASTNode* vNode = pop(stack);
-		push(stack, setChild(makeASTNode(_INCDECEXP)), setSibling(vNode, incDecNode));
+		push(stack, setChild(makeASTNode(_INCDECEXP), setSibling(vNode, incDecNode)));
 	}
 	| IncDec Variable {
 		ASTNode* vNode = pop(stack);
 		ASTNode* incDecNode = pop(stack);
-		push(stack, setChild(makeASTNode(_INCDECEXP)), setSibling(incDecNode, vNode));
+		push(stack, setChild(makeASTNode(_INCDECEXP), setSibling(incDecNode, vNode)));
 	}
 	| NumberLiteral {}
 	;
 
-NumberLiteral : TINTEGER {push(stack, makeASTNode(_INTEGER));}
-		| TREAL {push(stack, makeASTNode(_REAL));}
+NumberLiteral : TINTEGER {push(stack, makeASTNodeINT($1));}
+		| TREAL {push(stack, makeASTNodeREAL($1));}
 		;
 
 IncDec : TINC {push(stack, makeASTNodeOP(INC_));}
@@ -454,7 +521,11 @@ Arguments : ArgumentList {
 ArgumentList : ArgumentList TCOMMA AssignExpr {
 	ASTNode* aeNode = pop(stack);
 	ASTNode* argsListNode = pop(stack);
-	push(stack, setSibling(argsListNode, aeNode));
+	if (argsListNode) {
+		push(stack, setLastSibling(argsListNode, aeNode));
+	} else {
+		push(stack, aeNode);
+	}
 }
 	     | ArgumentList TCOMMA TSTRING {}
 	     | AssignExpr {}
