@@ -122,6 +122,7 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _FUNCDEC:
 		break;
 	case _ID:
+		setName(node, getSVal(node));
 		break;
 	case _ARRAY:
 		break;
