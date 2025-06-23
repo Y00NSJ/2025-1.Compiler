@@ -165,6 +165,27 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _INCDECEXP:
 		break;
 	case _OPER:
+		switch (getOperator(node)) {
+		case NE_:
+			setName(node, getTmp());
+			l = getChild(node);
+			r = getSibling(l);
+			emit(tac, "%n = %n != %n", node, l, r);
+			break;
+		case ASSIGN_:
+			setName(node, getTmp());
+			l = getChild(node);
+			r = getSibling(l);
+			emit(tac, "%n = %n", l, r);
+			emit(tac, "%n = %n", node, l);
+			break;
+		case MOD_:
+			setName(node, getTmp());
+			l = getChild(node);
+			r = getSibling(l);
+			emit(tac, "%n = %n %% %n", node, l, r);
+			break;
+		}
 		break;
 	case _INTEGER:
 		break;
