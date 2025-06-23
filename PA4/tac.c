@@ -33,6 +33,7 @@ void genTAC(TAC* tac, ASTNode* node){
 	static int declaration = 0;
 	int enterChildNode = 1;
 	int i=0, tint = 0;
+	ASTNode *l=0, *r=0;
 	if(!tac)	return;
 	if(!node)	return;
 //	printf("Node %d\n", getTkNum(node));
