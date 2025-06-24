@@ -33,6 +33,7 @@ void genTAC(TAC* tac, ASTNode* node){
 	static int declaration = 0;
 	int enterChildNode = 1;
 	int i=0, tint = 0;
+	char *lb1=0, *lb2=0;
 	ASTNode *l=0, *r=0;
 	if(!tac)	return;
 	if(!node)	return;
@@ -42,6 +43,13 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _PROG:
 		break;
 	case _FUNCDEF:
+		l = getChild(node);  // TYPE
+		ASTNode* idNode = getSibling(l);  // ID
+		ASTNode* paramNode = getSibling(idNode);  // PARAMS
+		ASTNode* bodyNode = getSibling(paramNode);  // CPNDSTMT
+		char* funcName = getSVal(idNode);
+		emit(tac, "%s:", funcName);
+		emit(tac, "BeginFunc");
 		break;
 	case _VARDEC:
 		declaration = 1;
@@ -95,6 +103,7 @@ void genTAC(TAC* tac, ASTNode* node){
 		enterChildNode = 0;              // 자식 다시 방문하지 않도록
 		break;
 	case _SWSTMT:
+
 		break;
 	case _RTSTMT:
 		break;
@@ -120,6 +129,9 @@ void genTAC(TAC* tac, ASTNode* node){
 		enterChildNode = 0;
 		break;
 	case _DOWHLSTMT:
+		lb1 = getLabel();
+		emit(tac, "%s:", lb1);
+		pushLabel(ls, getLabel());
 		break;
 	case _FORSTMT:
 		ASTNode* exp1 = getChild(node);
@@ -161,6 +173,20 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _ARGS:
 		break;
 	case _FUNCCALL:
+		l = getChild(node); // ID node
+		r = getSibling(l);  // ARGS node
+		ASTNode* arg = getChild(r);
+		int argCount = 0;
+		while (arg) {
+			genTAC(tac, arg);
+			emit(tac, "PushParam %n", arg);
+			argCount++;
+			arg = getSibling(arg);
+		}
+		setName(node, getTmp());
+		emit(tac, "%n = LCall %s", node, getSVal(l));
+		emit(tac, "PopParam %d", argCount);
+		enterChildNode = 0;
 		break;
 	}
 
@@ -177,6 +203,7 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _PROG:
 		break;
 	case _FUNCDEF:
+		emit(tac, "EndFunc");
 		break;
 	case _VARDEC:
 		declaration = 0;
@@ -201,11 +228,10 @@ void genTAC(TAC* tac, ASTNode* node){
 		declaration = 0;
 		break;
 	case _STMTLIST:
-		ASTNode *c = getChild(node);
-		while(c){
-			genTAC(tac, c);
-			c = getSibling(c);
-		}
+		// ASTNode *c = getChild(node);
+		// while(c){
+		// 	c = getSibling(c);
+		// }
 		break;
 	case _IDDECLIST:
 		break;
@@ -216,12 +242,20 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _SWSTMT:
 		break;
 	case _RTSTMT:
+		l = getChild(node);
+		if (l)	emit(tac, "Return %n", l);
+		else emit(tac, "Return");
 		break;
 	case _BRKSTMT:
 		break;
 	case _WHLSTMT:
 		break;
 	case _DOWHLSTMT:
+		lb2 = popLabel(ls);
+		r = getSibling(getChild(node));
+		emit(tac, "IFZ %n Goto %s", r, lb2);
+		emit(tac, "Goto %s", lb1);
+		emit(tac, "%s:", lb2);
 		break;
 	case _FORSTMT:
 		break;
@@ -277,3 +311,4 @@ void genTAC(TAC* tac, ASTNode* node){
 		break;
 	}
 }
+
