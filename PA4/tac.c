@@ -122,6 +122,29 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _DOWHLSTMT:
 		break;
 	case _FORSTMT:
+		ASTNode* exp1 = getChild(node);
+		genTAC(tac, exp1);
+
+		lb1 = getLabel();
+		emit(tac, "%s:", lb1);
+
+		ASTNode* exp2 = getSibling(exp1);
+		genTAC(tac, exp2);
+
+		lb2 = getLabel();
+		emit(tac, "IFZ %n Goto %s", getChild(exp2), lb2);
+		pushLabel(ls, lb2);
+
+		ASTNode* exp3 = getSibling(exp2);
+		ASTNode* body = getSibling(exp3);
+		genTAC(tac, body);
+		genTAC(tac, exp3);
+
+		emit(tac, "Goto %s", lb1);
+		emit(tac, "%s:", lb2);
+		popLabel(ls);
+
+		enterChildNode = 0;
 		break;
 	case _CASE:
 		break;
