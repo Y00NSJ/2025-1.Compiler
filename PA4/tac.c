@@ -282,22 +282,90 @@ void genTAC(TAC* tac, ASTNode* node){
 		switch (getOperator(node)) {
 		case NE_:
 			setName(node, getTmp());
-			l = getChild(node);
-			r = getSibling(l);
+			l = getChild(node); r = getSibling(l);
 			emit(tac, "%n = %n != %n", node, l, r);
 			break;
 		case ASSIGN_:
-			setName(node, getTmp());
-			l = getChild(node);
-			r = getSibling(l);
-			emit(tac, "%n = %n", l, r);
-			emit(tac, "%n = %n", node, l);
+			l = getChild(node); r = getSibling(l);
+			if (!declaration) {
+				setName(node, getTmp());
+				emit(tac, "%n = %n", l, r);         // 실행 시 대입
+				emit(tac, "%n = %n", node, l);
+			} else {
+				emit(tac, "%n = %n", l, r);         // 선언 시 초기화
+			}
 			break;
 		case MOD_:
 			setName(node, getTmp());
-			l = getChild(node);
-			r = getSibling(l);
+			l = getChild(node); r = getSibling(l);
 			emit(tac, "%n = %n %% %n", node, l, r);
+			break;
+		case EQ_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n == %n", node, l, r);
+			break;
+		case LT_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n < %n", node, l, r);
+			break;
+		case LE_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n <= %n", node, l, r);
+			break;
+		case GT_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n > %n", node, l, r);
+			break;
+		case GE_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n >= %n", node, l, r);
+			break;
+		case PLUS_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n + %n", node, l, r);
+			break;
+		case MINUS_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			if (!r) {
+				// 단항 마이너스
+				emit(tac, "%n = 0 - %n", node, l);
+			} else {
+				// 이항 마이너스
+				emit(tac, "%n = %n - %n", node, l, r);
+			}
+			break;
+		case MULT_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n * %n", node, l, r);
+			break;
+		case DIV_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n / %n", node, l, r);
+			break;
+		case AND_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n && %n", node, l, r);
+			break;
+		case OR_:
+			setName(node, getTmp());
+			l = getChild(node); r = getSibling(l);
+			emit(tac, "%n = %n || %n", node, l, r);
+			break;
+		case COMMA_:
+			l = getChild(node); r = getSibling(l);
+			genTAC(tac, l);
+			genTAC(tac, r);
+			setName(node, getName(r));
 			break;
 		}
 		break;
