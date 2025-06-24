@@ -99,8 +99,25 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _RTSTMT:
 		break;
 	case _BRKSTMT:
+		emit(tac, "Goto %s", topLabel(ls));
 		break;
 	case _WHLSTMT:
+		lb1 = getLabel();
+		emit(tac, "%s:", lb1);
+		l = getChild(node);               // 조건식
+		genTAC(tac, l);                   // 먼저 조건식 실행
+
+		lb2 = getLabel();
+		emit(tac, "IFZ %n Goto %s", l, lb2);  // 조건식 결과로 분기
+		pushLabel(ls, lb2);
+
+		ASTNode* cpndStmt = getSibling(l);	// 실행문
+		if (cpndStmt)	genTAC(tac, cpndStmt);
+
+		emit(tac, "Goto %s", lb1);		// loop
+		emit(tac, "%s:", lb2);			// escape 후 실행문
+		popLabel(ls);
+		enterChildNode = 0;
 		break;
 	case _DOWHLSTMT:
 		break;
