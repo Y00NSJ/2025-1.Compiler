@@ -71,6 +71,28 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _EXPRSTMT:
 		break;
 	case _IFSTMT:
+		l = getChild(node);               // 조건식
+		ASTNode* thenStmt = getSibling(l);
+
+		genTAC(tac, l);                   // 먼저 조건식 실행
+		lb1 = getLabel();
+		emit(tac, "IFZ %n Goto %s", l, lb1);  // 조건식 결과로 분기
+
+		genTAC(tac, thenStmt);            // then 블록 실행
+
+		ASTNode* elseStmt = getSibling(thenStmt);
+
+		if (elseStmt) {
+			lb2 = getLabel();
+			emit(tac, "Goto %s", lb2);
+		}
+		emit(tac, "%s:", lb1);            // 라벨 출력
+		if (elseStmt) {
+			genTAC(tac, elseStmt);
+			emit(tac, "%s:", lb2);
+		}
+
+		enterChildNode = 0;              // 자식 다시 방문하지 않도록
 		break;
 	case _SWSTMT:
 		break;
