@@ -163,6 +163,19 @@ void genTAC(TAC* tac, ASTNode* node){
 	case _DEFAULT:
 		break;
 	case _INCDECEXP:
+		l = getChild(node);
+		r = getSibling(l);
+		if (getTkNum(r) == _ID) {
+			setName(node, getName(r));
+			if (getOperator(l) == INC_) emit(tac, "%n = %n + 1", node, r);
+			else emit(tac, "%n = %n - 1", node, r);
+		}
+		else {
+			setName(node, getTmp());
+			emit(tac, "%n = %n", node, l);
+			if (getOperator(r) == INC_) emit(tac, "%n = %n + 1", l, l);
+			else emit(tac, "%n = %n - 1", l, l);
+		}
 		break;
 	case _OPER:
 		switch (getOperator(node)) {
