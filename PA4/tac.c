@@ -139,6 +139,11 @@ void genTAC(TAC* tac, ASTNode* node){
 		declaration = 0;
 		break;
 	case _STMTLIST:
+		ASTNode *c = getChild(node);
+		while(c){
+			genTAC(tac, c);
+			c = getSibling(c);
+		}
 		break;
 	case _IDDECLIST:
 		break;
